@@ -67,7 +67,7 @@
 
 # :two: Language
 
-## :gem: Javascript [Link]()
+## :gem: Javascript [Link](./Language/Javascript)
 
 - 자바스크립트
 
