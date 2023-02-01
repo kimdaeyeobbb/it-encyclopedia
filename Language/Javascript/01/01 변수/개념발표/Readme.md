@@ -48,7 +48,7 @@
 - `할당 (assignment)`
 
   - 변수에 값을 저장하는 것
-  - 대입, 저장
+  - 자바스크립트는 런타임 이전에 선언이 되고, 런타임시 할당이 된다.
 
 <br>
 
@@ -228,6 +228,75 @@ var score; // 변수 선언
   이는 변수 선언(선언 단계와 초기화 단계)이 소스코드가 순차적으로 실행되는 런타임 이전 단계에서 먼저 실행된다는 증거이다.<br>
   이처럼 변수 선언문이 코드의 선두로 끌어 올려진 것처럼 동작하는 자바스크립트 고유의 특징을 `변수 호이스팅 (variable hoisting)`이라 한다.
 
+- 변수 선언외에도 호이스팅 되는 것들
+
+  - var, let, const, function, function\* (제너레이터 함수), class 등과 같이 키워드를 사용해서 선언하는 모든 식별자
+
+- function\*
+
+  ```js
+  function* generator(i) {
+    yield i;
+    yield i + 10;
+  }
+
+  const gen = generator(10);
+
+  console.log(gen); // generator {<suspended>}
+  console.log(gen.next); // ƒ next() { [native code] }
+  console.log(gen.next()); // {value: 10, done: false}
+  console.log(gen.next().value); // 10
+  console.log(gen.next().value); //20
+  console.log(gen.next().value); // undefined
+  ```
+
+- `generator`
+
+  - 빠져나갔다가 다시 돌아올 수 있는 함수이다. 이때 컨텍스트(변수 값)는 출입 과정에서 지정된 상태로 남아있다.
+  - generator 함수는 호출되어도 즉시 실행되지 않고, 함수를 위한 `iterator` 객체가 반환된다.
+  - `iterator`의 `next()` 메서드를 호출하면 Generator 함수가 실행되어 `yield`문을 만날 때까지 진행하고, 해당 표현식이 명시하는 `iterator`로부터의 반환값을 리턴함
+  - 이후 `next()`메서드가 호출되면 진행이 멈췄던 위치에서부터 재실행함.
+  - `next()`가 반환하는 객체는 `yield`문이 반환될 값(yielded value)을 나타내는 `value`속성과 Generator 함수 안의 모든 `yield`문의 실행 여부를 표시하는 boolean 타입의 `done`속성을 가진다.
+  - `next()`를 인자값과 함께 호출하는 경우, 진행을 멈췄던 위치의 `yield`문을 `next()`메서드에서 받은 인자값으로 치환하고 그 위치에서 다시 실행하게 됨
+
+    ```js
+    function* idMaker() {
+      var index = 0;
+      while (index < 3) yield index++;
+    }
+
+    var gen = idMaker();
+
+    console.log(gen.next().value); // 0
+    console.log(gen.next().value); // 1
+    console.log(gen.next().value); // 2
+    console.log(gen.next().value); // undefined
+    ```
+
+  - [generator 참고자료](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Statements/function*)
+
+  - `yield`
+
+    ```js
+    function\* func1() {
+    yield 42;
+    }
+
+    function* func2() {
+    yield* func1();
+    }
+
+    const iterator = func2();
+
+    console.log(iterator.next().value); // 42
+    console.log(iterator.next().value); // undefined
+    ```
+
+    - 다른 Generator 또는 iterable 객체에 yield를 위임할 때 사용함
+    - `yield*`표현은 피연산자를 반복하고 반환되는 값을 산출(yield)
+    - iterator(반복자)가 종료될 때 반환되는 값
+    - [yield\* 참고자료](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Operators/yield*)
+
 #### 호이스팅
 
 - 스코프 내부 어디서든 변수 선언은 최상위에 선언된 것처럼 행동
@@ -384,3 +453,170 @@ printAge();
 
 - var는 사용하지말고 let&const를 사용하는게 좋다.
   - 예측 가능한 결과를 내고, 버그를 줄일 수 있다.
+
+<br>
+
+### 7️⃣ 값의 할당
+
+```js
+var score; //  변수 선언
+score = 100; // 값의 할당
+
+var score = 90; // 변수 선언과 값의 할당
+```
+
+- 자바스크립트 엔진은 변수 선언과 값의 할당을 하나의 문으로 단축 표현해도 변수 선언과 값의 할당을 2개의 문으로 나누어 각각 실행함
+
+#### 변수 선언과 값의 할당은 실행 시점이 다르다.
+
+| 변수 선언                                                       | 값의 할당                                             |
+| :-------------------------------------------------------------- | :---------------------------------------------------- |
+| 소스코드가 순차적으로 실행되는 시점인 런타임 이전에 먼저 실행됨 | 소스코드가 순차적으로 실행되는 시점인 런타임에 실행됨 |
+
+- [예제코드](./assignment1.js)
+
+```js
+console.log(score); // 1) undefined
+
+var score; // 2) 변수 선언
+score = 80; // 3) 값의 할당
+
+console.log(score); // 4) 80
+```
+
+- 1. 변수선언은 런타임 이전에 먼저 실행됨
+- 2. 값의 할당은 런타임에 실행됨
+  - 변수 선언이 완료된 상태이며, 이미 undefined로 초기화 되어있음
+  - 이러한 상태에서 score 변수에 80이라는 숫자를 할당하였으므로 값이 변경함.
+  - 변수값 할당시 기존값인 undefined가 저장되어 있던 메모리 공간을 지우고 해당 메모리 공간에 값 80을 새로이 저장하는 것이 아니다<br>(새로운 메모리 공간을 확보하고 그곳에 할당 ㄱ밧 80을 저장한다)
+
+<br>
+
+### :eight: 값의 재할당
+
+- 재할당
+
+  - 현재 변수에 저장된 값을 버리고 새로운 값을 저장하는 것
+  - var 키워드로 선언한 변수에 처음 값을 할당하는 것도 재할당임 (var키워드로 선언한 변수는 선언과 동시에 undefined로 초기화되어 있으므로)
+
+  ```js
+  var score = 80; // 변수 선언 & 값 할당
+  score = 90; // 값의 재할당
+  ```
+
+  ![값의 재할당](./reassignment1.png)
+  <br>
+
+  - score 변수의 이전값인 undefined와 80은 어떤 변수도 값으로 가지고 있지 않음 (어떠한 식별자와도 연결되어 있지 않음)
+  - 불필요한 값이 되어 버렸으므로 가비지 컬렉터에 의해 메모리에서 자동 해제됨
+  - 가비지 컬렉터
+    - 애플리케이션이 할당한 메모리 공간을 주기적으로 검사해서 더 이상 사용되지 않는 메모리 (어떤 식별자도 참조하지 않는 메모리 공간)를 해제하는 기능
+    - 자바스크립트는 내장된 가비지 컬렉터를 이용해서 메모리 누수를 방지함
+    - 개발자가 직접적으로 메모리 제어를 하지 않으므로 생산성을 확보 할 수 있으나 성능적인 감소라는 단점 또한 존재함
+
+- 상수
+  - 한번 정해지면 변하지 않는 값 (한 번만 할당 가능한 변수)
+  - const 키워드를 사용해서 선언한 변수는 재할당이 금지됨
+  ```js
+  const num1 = 10;
+  num1; // error.
+  ```
+
+<br>
+
+### 9️⃣ 식별자 네이밍 규칙
+
+- 식별자(어떤 값을 구별해서 식별해낼 수 있는 고유한 이름)는 특수문자를 제외한 문자, 숫자, 언더바(\_), 달러 기호($)를 포함할 수 있음
+- 식별자는 특수문자를 제외한 문자, 언더바(\_), 달러 기호($)로 시작해야 함. 숫자로 시작하는 것은 허용하지 않음
+- 예약어는 식별자로 사용할 수 없음
+- 자바스크립트는 대소문자를 구분함
+
+#### 예약어
+
+- 프로그래밍 언어에서 사용하고 있거나 사용될 예정인 단어
+- await
+- break
+- case
+- catch
+- class
+- const
+- continue
+- debugger
+- default
+- delete
+- do
+- else
+- enum
+- export
+- extends
+- false
+- finally
+- for
+- function
+- if
+- implements\*
+- import
+- in
+- instanceof
+- interface\*
+- let\*
+- new
+- null
+- package\*
+- private\*
+- protected\*
+- public\*
+- return
+- super
+- static\*
+- switch
+- this
+- throw
+- true
+- try
+- typeof
+- var
+- void
+- while
+- with
+- yield\*
+
+#### 네이밍 컨벤션 (naming convention)
+
+- 하나 이상의 영어 단어로 구성된 식별자를 만들 때 가독성이 좋게 단어를 한눈에 구분하기 위해 규정한 명명 규칙
+
+##### 유형
+
+1. 카멜 케이스(camelCase)
+
+   - 일반적으로 변수나 함수명으로 사용함
+   - 객체와 함수명으로 사용함
+
+   ```js
+   var firstName;
+   ```
+
+2. 스네이크 케이스(snake_case)
+
+   ```js
+   var first_name;
+   ```
+
+3. 파스칼 케이스(PascalCase)
+
+   - 일반적으로 생성자 함수, 클래스명에 사용함
+   - 객체와 함수명으로 사용함
+
+   ```js
+   var FirstName;
+   ```
+
+4. 헝가리안 케이스(typeHungarianCase)
+
+   - 변수명 앞에 자료형을 붙이는 것
+
+   ```js
+   var strFirstName; // type + identifier
+   ```
+
+- 코드의 전체 가독성을 위해서는 카멜 케이스와 파스칼 케이스를 따르는 것이 좋음
