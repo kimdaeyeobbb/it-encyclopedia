@@ -41,7 +41,7 @@ console.log(add(2));
 
 ```xml
 Lexical Environment - Lexical Environment Record
-					ㄴ Outer Environment Reference
+		    ㄴ Outer Environment Reference
 ```
 
 <img width="217" alt="표시" src="https://user-images.githubusercontent.com/57481378/220178707-440ad4d6-41a1-48da-b6c8-80489bc4d1ce.png">
